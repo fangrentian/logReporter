@@ -4,7 +4,7 @@ import log4js from 'log4js'
 import fs from 'fs'
 
 const app = express()
-const port = 3000
+const port = process.env.PORT
 
 expressWs(app)
 
