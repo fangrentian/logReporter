@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>日志</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            height: 100%;
+            background-color: black;
+        }
+        body {
+            padding-top: 50px;
+        }
+        h2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            color: white;
+            background-color: black;
+        }
+        #logs li {
+            padding: 10px 15px 10px 0;
+            margin-left: 25px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        #logs li.log-new {
+            font-size: 18px;
+        }
+        .log-success {
+            color: green;
+        }
+        .log-error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h2>展会期间自动创建 [工单+活件+工序] 实时日志</h2>
+<ul id="logs">
+    <% for(let i = 0 ; i<logs.length ; i++){ %>
+        <% if (logs[i].includes('[INFO]')) { %>
+        <li class="log-success"> <%=logs[i] %> </li>
+        <% } %>
+        <% if (logs[i].includes('[ERROR]')) { %>
+        <li class="log-error"> <%=logs[i] %> </li>
+        <% } %>
+    <% } %>
+</ul>
+
+<script>
+    const logs = document.getElementById('logs');
+
+    function appendChild(data) {
+        let element = document.createElement('li');
+        if(data.includes('[INFO]')){
+            element.className = 'log-new log-success'
+        }
+        if(data.includes('[ERROR]')) {
+            element.className = 'log-new log-error'
+        }
+        element.innerHTML = data;
+        logs.appendChild(element);
+    }
+
+    function scrollToBottom() {
+        setTimeout(()=>{
+            window.scrollTo(0, document.body.scrollHeight);
+        }, 2000)
+    }
+
+    function reload() {
+        window.location.reload();
+        scrollToBottom();
+    }
+
+    const socket = new WebSocket("ws://s9kxrz.natappfree.cc/report")
+    // const socket = new WebSocket("wss://node-ares.codeanyapp.com/report")
+    // const socket = new WebSocket("ws://ares.ittun.com/report")
+
+    socket.addEventListener('open',(e)=>{
+        console.log('WS连接成功', new Date().toString())
+    })
+    socket.addEventListener('message',(e)=>{
+        let data = e.data;
+        console.log('WS收到推送消息', data)
+        appendChild(data);
+        scrollToBottom();
+    })
+    socket.addEventListener('error',(e)=>{
+        console.log('WS发生错误')
+    })
+    socket.addEventListener('close',(e)=>{
+        console.log('WS关闭')
+        // reload();
+    })
+    scrollToBottom();
+
+    setInterval(()=>{
+        reload();
+    }, 5*60*1000)
+</script>
+</body>
+</html>
+
